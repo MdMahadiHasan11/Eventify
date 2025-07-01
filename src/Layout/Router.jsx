@@ -6,6 +6,9 @@ import Register from "../Pages/AllUser/Register/Register";
 import Login from "../Pages/AllUser/Login/Login";
 import About from "../Pages/AllUser/About/About";
 import PrivateRoute from "./PrivateRoute/PrivateRoute";
+import AllEvent from "../Pages/AllUser/Event/AllEvent";
+import AddEvent from "../Pages/AllUser/Event/AddEvent";
+import MyEvent from "../Pages/AllUser/Event/MyEvent";
 
 const Router = createBrowserRouter([
   {
@@ -16,6 +19,18 @@ const Router = createBrowserRouter([
       {
         path: "/",
         element: <Home />,
+      },
+      {
+        path: "/events",
+        element: <AllEvent />,
+      },
+      {
+        path: "/my event",
+        element: <MyEvent />,
+      },
+      {
+        path: "/add event",
+        element: <AddEvent />,
       },
       {
         path: "/register",

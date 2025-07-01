@@ -48,7 +48,7 @@ const Navbar = () => {
 
         {/* Middle - Navigation Links (Large Screens) */}
         <div className="hidden md:flex gap-6 items-center justify-center flex-1">
-          {["Home", "About", "Services", "Contact"].map((item) => (
+          {["Home", "Events", "Add Event", "My Event"].map((item) => (
             <NavLink
               key={item}
               to={`/${item.toLowerCase()}`}
@@ -122,11 +122,11 @@ const Navbar = () => {
       {/* Mobile Menu */}
       <div
         ref={menuRef}
-        className={`md:hidden fixed top-16 left-0 w-1/2 bg-gray-900 text-white p-4 rounded-lg transition-all duration-300 ${
+        className={`md:hidden fixed top-16 left-0 w-1/2 bg-gray-900 text-white p-4 rounded-b-lg transition-all duration-300 ${
           menuOpen ? "opacity-100 visible" : "opacity-0 invisible"
         }`}
       >
-        {["Home", "About", "Services", "Contact"].map((item) => (
+        {["Home", "Events", "Add Event", "My Event"].map((item) => (
           <NavLink
             key={item}
             to={`/${item.toLowerCase()}`}

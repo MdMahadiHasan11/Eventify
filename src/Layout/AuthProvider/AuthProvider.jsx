@@ -2,7 +2,8 @@
 import PropTypes from "prop-types";
 import { useEffect, useState } from "react";
 import { AuthContext } from "./AuthContext"; // Import the context
-import useAxiosPublic from "../../hooks/useAxiosPublic";
+import useAxiosPublic from "../../Hooks/useAxiosPublic";
+// import useAxiosPublic from "../../hooks/useAxiosPublic";
 
 const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
