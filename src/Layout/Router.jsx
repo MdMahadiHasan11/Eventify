@@ -21,6 +21,10 @@ const Router = createBrowserRouter([
         element: <Home />,
       },
       {
+        path: "/home",
+        element: <Home />,
+      },
+      {
         path: "/events",
         element: <AllEvent />,
       },
@@ -33,7 +37,7 @@ const Router = createBrowserRouter([
         element: <AddEvent />,
       },
       {
-        path: "/register",
+        path: "/signUp",
         element: <Register />,
       },
       {

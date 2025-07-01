@@ -300,22 +300,25 @@ export default function EventsPage() {
               {filteredAndSortedEvents.map((event) => (
                 <div
                   key={event._id}
-                  className="bg-white rounded-xl shadow-md p-6 transform hover:-translate-y-1 hover:shadow-2xl transition-all duration-300 ease-in-out"
+                  className="bg-gradient-to-br from-white to-gray-50 rounded-2xl shadow-lg p-6 m-4 transform hover:-translate-y-2 hover:shadow-xl transition-all duration-300 ease-in-out max-w-sm w-full"
                 >
-                  <h3 className="text-2xl font-semibold text-gray-900 mb-3 truncate">
+                  {/* Event Title */}
+                  <h3 className="text-xl font-bold text-gray-900 mb-3 truncate bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600">
                     {event.title}
                   </h3>
-                  <div className="space-y-2">
-                    <p className="text-sm text-gray-600">
-                      <span className="font-medium text-gray-800">
+
+                  {/* Event Details */}
+                  <div className="space-y-3">
+                    <p className="text-sm text-gray-700 flex items-center">
+                      <span className="font-semibold text-indigo-700 mr-2">
                         Posted by:
-                      </span>{" "}
+                      </span>
                       {event.name}
                     </p>
-                    <p className="text-sm text-gray-600">
-                      <span className="font-medium text-gray-800">
+                    <p className="text-sm text-gray-700 flex items-center">
+                      <span className="font-semibold text-indigo-700 mr-2">
                         Date & Time:
-                      </span>{" "}
+                      </span>
                       {new Date(event.dateTime).toLocaleString("en-US", {
                         weekday: "short",
                         year: "numeric",
@@ -326,25 +329,33 @@ export default function EventsPage() {
                         hour12: true,
                       })}
                     </p>
-                    <p className="text-sm text-gray-600">
-                      <span className="font-medium text-gray-800">
+                    <p className="text-sm text-gray-700 flex items-center">
+                      <span className="font-semibold text-indigo-700 mr-2">
                         Location:
-                      </span>{" "}
+                      </span>
                       {event.location}
                     </p>
-                    <p className="text-sm text-gray-700 line-clamp-3">
+                    <p className="text-sm text-gray-600 line-clamp-3 leading-relaxed">
                       {event.description}
                     </p>
-                    <p className="text-sm text-gray-600">
-                      <span className="font-medium text-gray-800">
+                    <p className="text-sm text-gray-700 flex items-center">
+                      <span className="font-semibold text-indigo-700 mr-2">
                         Attendees:
-                      </span>{" "}
-                      {event.attendeeCount || 0}
+                      </span>
+                      <span className="bg-indigo-100 text-indigo-800 px-2 py-1 rounded-full text-xs font-medium">
+                        {event.attendeeCount || 0}
+                      </span>
                     </p>
                   </div>
+
+                  {/* Join Button */}
                   <button
                     onClick={(e) => handleUpdateSubmit(e, event)}
-                    className="mt-4 w-full bg-indigo-600 text-white py-2.5 rounded-lg font-medium hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors duration-200"
+                    className={`mt-5 w-full py-2.5 rounded-lg font-semibold text-white transition-all duration-200 ${
+                      event.attendees && event.attendees.includes(user.user_id)
+                        ? "bg-blue-200 text-black cursor-not-allowed opacity-75"
+                        : "bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-4 focus:ring-indigo-300 focus:ring-opacity-50 shadow-md"
+                    }`}
                     disabled={
                       event.attendees && event.attendees.includes(user.user_id)
                     }
