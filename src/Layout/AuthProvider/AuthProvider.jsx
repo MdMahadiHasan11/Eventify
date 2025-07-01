@@ -2,38 +2,72 @@ import PropTypes from "prop-types";
 import { useEffect, useState } from "react";
 import { AuthContext } from "./AuthContext";
 import useAxiosPublic from "../../Hooks/useAxiosPublic";
+import useAxiosSecure from "../../Hooks/useAxiosSecure";
 
 const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const axiosPublic = useAxiosPublic();
-  const axiosSecure = useAxiosPublic();
+  const axiosSecure = useAxiosSecure();
 
-  // Check token validity on every render
   useEffect(() => {
     const verifyToken = async () => {
+      const storedUser = localStorage.getItem("user");
+      if (!storedUser) {
+        setLoading(false);
+        return;
+      }
+
       try {
-        const response = await axiosSecure.get("/verify-token");
+        // Parse stored user data
+        const parsedUser = JSON.parse(storedUser);
+        setUser(parsedUser); // Set user immediately to avoid UI flicker
+
+        // Verify token with the server
+        const response = await axiosSecure.get("/verify-token", {
+          withCredentials: true, // Ensure cookies are sent
+        });
+
         if (response.data.valid) {
           setUser(response.data.user);
           localStorage.setItem("user", JSON.stringify(response.data.user));
         } else {
-          setUser(null);
-          localStorage.removeItem("user");
+          // Try refreshing the token
+          const refreshResponse = await axiosPublic.post(
+            "/refresh-token",
+            {},
+            { withCredentials: true } // Ensure cookies are sent
+          );
+
+          if (refreshResponse.data.user && refreshResponse.data.token) {
+            setUser(refreshResponse.data.user);
+            localStorage.setItem(
+              "user",
+              JSON.stringify(refreshResponse.data.user)
+            );
+          } else {
+            setUser(null);
+            localStorage.removeItem("user");
+          }
         }
       } catch (error) {
         console.error("Token verification error:", error);
-        setUser(null);
-        localStorage.removeItem("user");
+        // Only clear user if the error explicitly indicates an invalid token
+        if (
+          error.response?.status === 401 ||
+          error.response?.data?.message === "Invalid or expired token"
+        ) {
+          setUser(null);
+          localStorage.removeItem("user");
+        }
       } finally {
         setLoading(false);
       }
     };
 
     verifyToken();
-  }, [axiosSecure]);
+  }, [axiosSecure, axiosPublic]);
 
-  // Create user (register)
   const createUser = async (username, email, password, photoURL) => {
     setLoading(true);
     try {
@@ -60,14 +94,14 @@ const AuthProvider = ({ children }) => {
     }
   };
 
-  // Sign in with email & password
   const signIn = async (email, password) => {
     setLoading(true);
     try {
-      const response = await axiosPublic.post("/login", {
-        email,
-        password,
-      });
+      const response = await axiosPublic.post(
+        "/login",
+        { email, password },
+        { withCredentials: true } // Ensure cookies are sent
+      );
 
       if (response.status === 200) {
         const user = response.data.user;
@@ -85,7 +119,6 @@ const AuthProvider = ({ children }) => {
     }
   };
 
-  // Logout function
   const logOut = async () => {
     setLoading(true);
     try {

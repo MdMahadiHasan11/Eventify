@@ -1,17 +1,11 @@
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
-import { useContext } from "react";
-import { AuthContext } from "../Layout/AuthProvider/AuthContext";
 
 const axiosSecure = axios.create({
-  baseURL: "https://eventify-engine.vercel.app",
+  baseURL: "http://localhost:5000",
   withCredentials: true,
 });
 
-const useAxiosSecure = () => {
-  const navigate = useNavigate();
-  const { logOut } = useContext(AuthContext);
-
+const useAxiosSecure = (navigate, logOut) => {
   axiosSecure.interceptors.request.use(
     (config) => {
       return config;
