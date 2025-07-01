@@ -4,7 +4,7 @@ import { useContext } from "react";
 import { AuthContext } from "../Layout/AuthProvider/AuthContext";
 
 const axiosSecure = axios.create({
-  baseURL: "http://localhost:5000",
+  baseURL: "https://eventify-engine.vercel.app",
   withCredentials: true,
 });
 
