@@ -4,11 +4,11 @@ import Root from "./Root";
 import Home from "../Pages/AllUser/HomePage/Home";
 import Register from "../Pages/AllUser/Register/Register";
 import Login from "../Pages/AllUser/Login/Login";
-import About from "../Pages/AllUser/About/About";
 import PrivateRoute from "./PrivateRoute/PrivateRoute";
 import AllEvent from "../Pages/AllUser/Event/AllEvent";
 import AddEvent from "../Pages/AllUser/Event/AddEvent";
 import MyEvent from "../Pages/AllUser/Event/MyEvent";
+import Profile from "../Pages/AllUser/Profile/Profile";
 
 const Router = createBrowserRouter([
   {
@@ -26,15 +26,28 @@ const Router = createBrowserRouter([
       },
       {
         path: "/events",
-        element: <AllEvent />,
+        element: (
+          <PrivateRoute>
+            <AllEvent />
+          </PrivateRoute>
+        ),
       },
+
       {
         path: "/my event",
-        element: <MyEvent />,
+        element: (
+          <PrivateRoute>
+            <MyEvent />
+          </PrivateRoute>
+        ),
       },
       {
         path: "/add event",
-        element: <AddEvent />,
+        element: (
+          <PrivateRoute>
+            <AddEvent />
+          </PrivateRoute>
+        ),
       },
       {
         path: "/signUp",
@@ -44,14 +57,24 @@ const Router = createBrowserRouter([
         path: "/login",
         element: <Login />,
       },
+
       {
-        path: "/about",
+        path: "/profile",
+
         element: (
           <PrivateRoute>
-            <About />
+            <Profile />
           </PrivateRoute>
         ),
       },
+      // {
+      //   path: "/about",
+      //   element: (
+      //     <PrivateRoute>
+      //       <About />
+      //     </PrivateRoute>
+      //   ),
+      // },
       // {
       //     path: "/messages",
       //     element: <Message></Message>

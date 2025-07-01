@@ -1,3 +1,4 @@
+// Hooks/useAllEvent.js
 import { useQuery } from "@tanstack/react-query";
 import useAxiosPublic from "./useAxiosPublic";
 
@@ -9,7 +10,7 @@ const useAllEvent = () => {
     isPending: loading,
     refetch,
   } = useQuery({
-    queryKey: ["events"], // Corrected to match the endpoint
+    queryKey: ["events"],
     queryFn: async () => {
       const res = await axiosPublic.get("/events/all");
       return res.data;

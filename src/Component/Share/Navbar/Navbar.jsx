@@ -29,7 +29,7 @@ const Navbar = () => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
+  console.log(user);
   return (
     <nav className="bg-indigo-800 text-white p-4 shadow-lg sticky top-0 z-50">
       <div className="container mx-auto flex justify-between items-center">
@@ -42,8 +42,12 @@ const Navbar = () => {
         </button>
 
         {/* Brand Name */}
-        <NavLink to="/" className="text-2xl font-bold tracking-wide md:mr-auto">
-          LOGO
+        <NavLink
+          to="/"
+          className="flex gap-2 font-bold tracking-wide md:mr-auto"
+        >
+          <img src="/i.png" alt="Logo" className="w-6" />
+          <p>Eventify</p>
         </NavLink>
 
         {/* Middle - Navigation Links (Large Screens) */}
@@ -67,7 +71,7 @@ const Navbar = () => {
               className="w-10 h-10 rounded-full overflow-hidden border-2 border-white"
             >
               <img
-                src={user.image || "https://i.ibb.co/qW320MT/images.jpg"}
+                src={user.photoURL || "https://i.ibb.co/qW320MT/images.jpg"}
                 alt="User Avatar"
                 className="w-full h-full object-cover"
               />
@@ -84,27 +88,9 @@ const Navbar = () => {
           {/* Profile Dropdown */}
           {profileOpen && user && (
             <div className="absolute right-0 mt-2 w-56 bg-gray-900 text-white shadow-lg rounded-md p-2 transition-all duration-300">
-              <NavLink
-                to="/profile"
-                className="block px-4 py-2 hover:bg-gray-700 rounded transition"
-                onClick={() => setProfileOpen(false)}
-              >
-                My Profile
-              </NavLink>
-              <NavLink
-                to="/settings"
-                className="block px-4 py-2 hover:bg-gray-700 rounded transition"
-                onClick={() => setProfileOpen(false)}
-              >
-                Settings
-              </NavLink>
-              <NavLink
-                to="/studentDashBoard"
-                className="block px-4 py-2 hover:bg-gray-700 rounded transition"
-                onClick={() => setProfileOpen(false)}
-              >
-                Dashboard
-              </NavLink>
+              <div className="block px-4 py-2 hover:bg-gray-700 rounded transition">
+                {user.username || user.email}
+              </div>
               <button
                 onClick={() => {
                   handleSignOut();

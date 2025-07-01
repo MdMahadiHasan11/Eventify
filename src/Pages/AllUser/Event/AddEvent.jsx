@@ -9,25 +9,18 @@ const AddEvent = () => {
     formState: { errors },
     reset,
   } = useForm();
-  const user = {
-    name: "Hasan",
-    email: "hasan@gmain.com",
-    user_id: "userXX",
-  };
   const axiosPublic = useAxiosPublic();
 
   const onSubmit = async (data) => {
     const payload = {
       ...data,
       attendeeCount: 0,
-      name: user.name,
-      email: user.email,
-      user_id: user.user_id,
     };
 
     try {
       const response = await axiosPublic.post("/events", payload);
       reset(); // Clear form after successful submission
+      window.location.href = "/my event";
       Swal.fire({
         icon: "success",
         title: "Event Added!",

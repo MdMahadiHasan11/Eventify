@@ -2,57 +2,43 @@ import { useState, useContext } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-// import { AuthContext } from "../../../Layout/AuthProvider/AuthProvider";
 import { motion } from "framer-motion";
 import { AuthContext } from "../../../Layout/AuthProvider/AuthContext";
 
 const SignUp = () => {
-  const [name, setName] = useState("");
+  const [username, setUsername] = useState("");
+  const [photoURL, setPhotoURL] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState("user");
-  const [image, setImage] = useState(null);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const authContext = useContext(AuthContext);
+  const { createUser } = useContext(AuthContext);
 
-  if (!authContext) {
+  if (!AuthContext) {
     throw new Error("SignUp must be used within an AuthProvider");
   }
-
-  const { createUser, updateUserProfile } = authContext;
 
   const handleSignUp = async (e) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      const user = await createUser(email, password, name);
-      if (image) {
-        const formData = new FormData();
-        formData.append("image", image);
-        const response = await fetch("/api/upload-image", {
-          method: "POST",
-          body: formData,
-        });
-        if (response.ok) {
-          const { imageUrl } = await response.json();
-          await updateUserProfile(name, imageUrl, role);
-        }
+      const result = await createUser(username, email, password, photoURL);
+      if (result.success) {
+        toast.success("Successfully signed up");
+        navigate("/");
       } else {
-        await updateUserProfile(name, undefined, role);
+        toast.error(result.message || "Failed to sign up");
       }
-      toast.success("Successfully signed up");
-      navigate("/login");
     } catch (error) {
-      toast.error("Failed to sign up");
+      toast.error(`Failed to sign up: ${error.message}`);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex  items-center justify-center bg-gray-100">
+    <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -65,13 +51,13 @@ const SignUp = () => {
         <form onSubmit={handleSignUp} className="space-y-4 mt-6">
           <div>
             <label className="block text-sm font-medium text-gray-700">
-              Name
+              Username
             </label>
             <input
               type="text"
               className="mt-1 p-2 w-full border rounded-md"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
               required
             />
           </div>
@@ -89,6 +75,18 @@ const SignUp = () => {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700">
+              Photo Url
+            </label>
+            <input
+              type="text"
+              className="mt-1 p-2 w-full border rounded-md"
+              value={photoURL}
+              onChange={(e) => setPhotoURL(e.target.value)}
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
               Password
             </label>
             <input
@@ -97,19 +95,6 @@ const SignUp = () => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Profile Image
-            </label>
-            <input
-              type="file"
-              className="mt-1 p-2 w-full border rounded-md"
-              onChange={(e) =>
-                setImage(e.target.files ? e.target.files[0] : null)
-              }
-              accept="image/*"
             />
           </div>
           <button

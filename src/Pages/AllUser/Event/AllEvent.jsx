@@ -1,12 +1,13 @@
-import { useState, useMemo } from "react";
+// EventsPage.js
+import { useState, useMemo, useContext } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { Calendar, Search, X, Filter } from "lucide-react";
 import { isValid } from "date-fns";
-// import useMyEvent from "../../../Hooks/useMyEvent";
 import useAllEvent from "../../../Hooks/useAllEvent";
 import Swal from "sweetalert2";
 import useAxiosPublic from "../../../Hooks/useAxiosPublic";
+import { AuthContext } from "../../../Layout/AuthProvider/AuthContext";
 
 export default function EventsPage() {
   const axiosPublic = useAxiosPublic();
@@ -14,29 +15,14 @@ export default function EventsPage() {
   const [searchTitle, setSearchTitle] = useState("");
   const [selectedDate, setSelectedDate] = useState(null);
   const [dateRange, setDateRange] = useState("");
-  const user = {
-    name: "Hasan",
-    email: "hasan@gmain.com",
-    user_id: "userXX",
-  };
+  const { user } = useContext(AuthContext);
 
   const handleUpdateSubmit = async (e, event) => {
     e.preventDefault();
-    // Check if the user has already joined
-    if (event.attendees && event.attendees.includes(user.user_id)) {
-      Swal.fire({
-        title: "Already Joined!",
-        text: "You have already joined this event.",
-        icon: "warning",
-        timer: 1500,
-        showConfirmButton: false,
-      });
-      return;
-    }
 
     try {
       const response = await axiosPublic.patch(`/events/all/${event._id}`, {
-        user_id: user.user_id,
+        email: user.email, // Send user.email
       });
       if (response.status === 200) {
         refetch();
@@ -50,16 +36,18 @@ export default function EventsPage() {
       }
     } catch (error) {
       console.error("Error joining event:", error);
+      const errorMessage =
+        error.response?.data?.error ||
+        "An error occurred while joining the event.";
       Swal.fire({
         title: "Error!",
-        text: "An error occurred while joining the event.",
+        text: errorMessage,
         icon: "error",
         timer: 1500,
         showConfirmButton: false,
       });
     }
   };
-
   // Debugging logs
   console.log("Raw events from useMyEvent:", events);
 
@@ -352,15 +340,19 @@ export default function EventsPage() {
                   <button
                     onClick={(e) => handleUpdateSubmit(e, event)}
                     className={`mt-5 w-full py-2.5 rounded-lg font-semibold text-white transition-all duration-200 ${
-                      event.attendees && event.attendees.includes(user.user_id)
+                      !user ||
+                      (event.attendees && event.attendees.includes(user?.email))
                         ? "bg-blue-200 text-black cursor-not-allowed opacity-75"
                         : "bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-4 focus:ring-indigo-300 focus:ring-opacity-50 shadow-md"
                     }`}
                     disabled={
-                      event.attendees && event.attendees.includes(user.user_id)
+                      !user ||
+                      (event.attendees && event.attendees.includes(user?.email))
                     }
                   >
-                    {event.attendees && event.attendees.includes(user.user_id)
+                    {!user
+                      ? "Login to Join"
+                      : event.attendees && event.attendees.includes(user.email)
                       ? "Already Joined"
                       : "Join Event"}
                   </button>

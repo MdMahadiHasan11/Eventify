@@ -1,22 +1,28 @@
-import { useQuery } from "@tanstack/react-query";
-import useAxiosPublic from "./useAxiosPublic";
+import { useCallback, useEffect, useState } from "react";
+import useAxiosSecure from "./useAxiosSecure";
 
 const useMyEvent = () => {
-  const axiosPublic = useAxiosPublic();
+  const [myEvents, setMyEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const axiosSecure = useAxiosSecure();
 
-  const {
-    data: myEvents = [],
-    isPending: loading,
-    refetch,
-  } = useQuery({
-    queryKey: ["myEvents"], // Corrected to match the endpoint
-    queryFn: async () => {
-      const res = await axiosPublic.get("/events");
-      return res.data;
-    },
-  });
+  const fetchEvents = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await axiosSecure.get("/events");
+      setMyEvents(response.data);
+    } catch (error) {
+      console.error("Error fetching my events:", error);
+      setMyEvents([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [axiosSecure, setMyEvents, setLoading]);
 
-  return [myEvents, loading, refetch];
+  useEffect(() => {
+    fetchEvents();
+  }, [fetchEvents]);
+
+  return [myEvents, loading, fetchEvents];
 };
-
 export default useMyEvent;

@@ -1,10 +1,6 @@
 import { useContext } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-// import { getAuth } from "firebase/auth";
-// import app from "../../../../firebase.config";
-// import { AuthContext } from "../../../Layout/AuthProvider/AuthProvider";
 import { Helmet } from "react-helmet";
 import { motion } from "framer-motion";
 import { AuthContext } from "../../../Layout/AuthProvider/AuthContext";
@@ -13,8 +9,6 @@ const Login = () => {
   const { signIn } = useContext(AuthContext);
   const location = useLocation();
   const navigate = useNavigate();
-  // const auth = getAuth(app);
-  // const captchaRef = useRef(null);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -22,13 +16,16 @@ const Login = () => {
     const email = form.get("email");
     const password = form.get("password");
 
-    const result = await signIn(email, password);
-
-    if (result.success) {
-      toast.success("Successfully Logged In");
-      navigate(location?.state || "/");
-    } else {
-      toast.error(result.message);
+    try {
+      const result = await signIn(email, password);
+      if (result.success) {
+        toast.success("Successfully Logged In");
+        navigate(location?.state || "/");
+      } else {
+        toast.error(result.message || "Failed to log in");
+      }
+    } catch (error) {
+      toast.error(`Failed to sign up: ${error.message}`);
     }
   };
 
@@ -76,7 +73,8 @@ const Login = () => {
             </Link>
           </div>
           <button
-            className={`w-full py-2 rounded-md text-white font-bold ${"bg-indigo-600 hover:bg-indigo-700"}`}
+            type="submit"
+            className="w-full py-2 rounded-md text-white font-bold bg-indigo-600 hover:bg-indigo-700"
           >
             Login
           </button>
@@ -101,4 +99,5 @@ const Login = () => {
     </div>
   );
 };
+
 export default Login;

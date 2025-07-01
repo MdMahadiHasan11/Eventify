@@ -1,40 +1,78 @@
-// AuthProvider.js
 import PropTypes from "prop-types";
 import { useEffect, useState } from "react";
-import { AuthContext } from "./AuthContext"; // Import the context
+import { AuthContext } from "./AuthContext";
 import useAxiosPublic from "../../Hooks/useAxiosPublic";
-// import useAxiosPublic from "../../hooks/useAxiosPublic";
 
 const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const axiosPublic = useAxiosPublic();
+  const axiosSecure = useAxiosPublic();
 
+  // Check token validity on every render
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    const token = localStorage.getItem("token");
-    if (storedUser && token) {
-      setUser(JSON.parse(storedUser));
+    const verifyToken = async () => {
+      try {
+        const response = await axiosSecure.get("/verify-token");
+        if (response.data.valid) {
+          setUser(response.data.user);
+          localStorage.setItem("user", JSON.stringify(response.data.user));
+        } else {
+          setUser(null);
+          localStorage.removeItem("user");
+        }
+      } catch (error) {
+        console.error("Token verification error:", error);
+        setUser(null);
+        localStorage.removeItem("user");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    verifyToken();
+  }, [axiosSecure]);
+
+  // Create user (register)
+  const createUser = async (username, email, password, photoURL) => {
+    setLoading(true);
+    try {
+      const response = await axiosPublic.post("/register", {
+        username,
+        email,
+        password,
+        photoURL,
+      });
+
+      if (response.status === 201) {
+        const user = response.data.user;
+        setUser(user);
+        localStorage.setItem("user", JSON.stringify(user));
+        return { success: true };
+      } else {
+        throw new Error(response.data.message || "Failed to register");
+      }
+    } catch (error) {
+      console.error("Registration error:", error);
+      return { success: false, message: error.message };
+    } finally {
       setLoading(false);
     }
-  }, []);
+  };
 
   // Sign in with email & password
   const signIn = async (email, password) => {
     setLoading(true);
     try {
-      const response = await axiosPublic.post("/api/auth/login", {
+      const response = await axiosPublic.post("/login", {
         email,
         password,
       });
 
-      if (response.status === 200 && response.data.token) {
-        console.log("Login successful:", response.data);
-
-        localStorage.setItem("token", response.data.token);
-        localStorage.setItem("user", JSON.stringify(response.data.user));
-
-        setUser(response.data.user);
+      if (response.status === 200) {
+        const user = response.data.user;
+        setUser(user);
+        localStorage.setItem("user", JSON.stringify(user));
         return { success: true };
       } else {
         throw new Error(response.data.message || "Invalid email or password");
@@ -51,9 +89,9 @@ const AuthProvider = ({ children }) => {
   const logOut = async () => {
     setLoading(true);
     try {
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
+      await axiosSecure.post("/logout", {}, { withCredentials: true });
       setUser(null);
+      localStorage.removeItem("user");
     } catch (error) {
       console.error("Logout error:", error);
     } finally {
@@ -65,11 +103,10 @@ const AuthProvider = ({ children }) => {
     user,
     setUser,
     loading,
+    createUser,
     signIn,
     logOut,
   };
-
-  console.log(user);
 
   return (
     <AuthContext.Provider value={authInfo}>{children}</AuthContext.Provider>
