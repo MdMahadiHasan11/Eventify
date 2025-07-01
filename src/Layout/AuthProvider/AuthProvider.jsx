@@ -1,14 +1,22 @@
+"use client";
+
 import PropTypes from "prop-types";
 import { useEffect, useState } from "react";
 import { AuthContext } from "./AuthContext";
-import useAxiosPublic from "../../Hooks/useAxiosPublic";
-import useAxiosSecure from "../../Hooks/useAxiosSecure";
+import axios from "axios";
+
+// Create axios instances directly to avoid circular dependency
+const axiosPublic = axios.create({
+  baseURL: "https://eventify-engine.vercel.app",
+});
+
+const axiosSecure = axios.create({
+  baseURL: "https://eventify-engine.vercel.app",
+});
 
 const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const axiosPublic = useAxiosPublic();
-  const axiosSecure = useAxiosSecure();
 
   useEffect(() => {
     const verifyToken = async () => {
@@ -23,9 +31,17 @@ const AuthProvider = ({ children }) => {
         const parsedUser = JSON.parse(storedUser);
         setUser(parsedUser); // Set user immediately to avoid UI flicker
 
+        // Add token to request headers
+        const token = localStorage.getItem("access-token");
+        if (token) {
+          axiosSecure.defaults.headers.common[
+            "Authorization"
+          ] = `Bearer ${token}`;
+        }
+
         // Verify token with the server
         const response = await axiosSecure.get("/verify-token", {
-          withCredentials: true, // Ensure cookies are sent
+          withCredentials: true,
         });
 
         if (response.data.valid) {
@@ -36,7 +52,7 @@ const AuthProvider = ({ children }) => {
           const refreshResponse = await axiosPublic.post(
             "/refresh-token",
             {},
-            { withCredentials: true } // Ensure cookies are sent
+            { withCredentials: true }
           );
 
           if (refreshResponse.data.user && refreshResponse.data.token) {
@@ -45,9 +61,11 @@ const AuthProvider = ({ children }) => {
               "user",
               JSON.stringify(refreshResponse.data.user)
             );
+            localStorage.setItem("access-token", refreshResponse.data.token);
           } else {
             setUser(null);
             localStorage.removeItem("user");
+            localStorage.removeItem("access-token");
           }
         }
       } catch (error) {
@@ -59,6 +77,7 @@ const AuthProvider = ({ children }) => {
         ) {
           setUser(null);
           localStorage.removeItem("user");
+          localStorage.removeItem("access-token");
         }
       } finally {
         setLoading(false);
@@ -66,7 +85,7 @@ const AuthProvider = ({ children }) => {
     };
 
     verifyToken();
-  }, [axiosSecure, axiosPublic]);
+  }, []);
 
   const createUser = async (username, email, password, photoURL) => {
     setLoading(true);
@@ -80,15 +99,23 @@ const AuthProvider = ({ children }) => {
 
       if (response.status === 201) {
         const user = response.data.user;
+        const token = response.data.token;
+
         setUser(user);
         localStorage.setItem("user", JSON.stringify(user));
+        if (token) {
+          localStorage.setItem("access-token", token);
+        }
         return { success: true };
       } else {
         throw new Error(response.data.message || "Failed to register");
       }
     } catch (error) {
       console.error("Registration error:", error);
-      return { success: false, message: error.message };
+      return {
+        success: false,
+        message: error.response?.data?.message || error.message,
+      };
     } finally {
       setLoading(false);
     }
@@ -100,20 +127,28 @@ const AuthProvider = ({ children }) => {
       const response = await axiosPublic.post(
         "/login",
         { email, password },
-        { withCredentials: true } // Ensure cookies are sent
+        { withCredentials: true }
       );
 
       if (response.status === 200) {
         const user = response.data.user;
+        const token = response.data.token;
+
         setUser(user);
         localStorage.setItem("user", JSON.stringify(user));
+        if (token) {
+          localStorage.setItem("access-token", token);
+        }
         return { success: true };
       } else {
         throw new Error(response.data.message || "Invalid email or password");
       }
     } catch (error) {
       console.error("Login error:", error);
-      return { success: false, message: error.message };
+      return {
+        success: false,
+        message: error.response?.data?.message || error.message,
+      };
     } finally {
       setLoading(false);
     }
@@ -122,11 +157,25 @@ const AuthProvider = ({ children }) => {
   const logOut = async () => {
     setLoading(true);
     try {
-      await axiosSecure.post("/logout", {}, { withCredentials: true });
+      const token = localStorage.getItem("access-token");
+      if (token) {
+        axiosSecure.defaults.headers.common[
+          "Authorization"
+        ] = `Bearer ${token}`;
+        await axiosSecure.post("/logout", {}, { withCredentials: true });
+      }
+
       setUser(null);
       localStorage.removeItem("user");
+      localStorage.removeItem("access-token");
+      delete axiosSecure.defaults.headers.common["Authorization"];
     } catch (error) {
       console.error("Logout error:", error);
+      // Still clear local data even if server request fails
+      setUser(null);
+      localStorage.removeItem("user");
+      localStorage.removeItem("access-token");
+      delete axiosSecure.defaults.headers.common["Authorization"];
     } finally {
       setLoading(false);
     }

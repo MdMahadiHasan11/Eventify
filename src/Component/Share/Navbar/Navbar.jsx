@@ -6,11 +6,12 @@ import { FiMenu, FiX } from "react-icons/fi";
 import { AuthContext } from "../../../Layout/AuthProvider/AuthContext";
 
 const Navbar = () => {
-  const { user, logOut } = useContext(AuthContext);
+  const authContext = useContext(AuthContext);
   const [menuOpen, setMenuOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const menuRef = useRef(null);
   const profileRef = useRef(null);
+  // Handle case where context might be null
 
   const handleSignOut = () => {
     logOut().catch((err) => console.error(err));
@@ -29,6 +30,13 @@ const Navbar = () => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+  if (!authContext) {
+    return <div>Loading...</div>; // or some loading component
+  }
+  const { user, logOut, loading } = authContext;
+  if (loading) {
+    return <div>Loading...</div>; // or your loading component
+  }
   console.log(user);
   return (
     <nav className="bg-indigo-800 text-white p-4 shadow-lg sticky top-0 z-50">
@@ -89,7 +97,7 @@ const Navbar = () => {
           {profileOpen && user && (
             <div className="absolute right-0 mt-2 w-56 bg-gray-900 text-white shadow-lg rounded-md p-2 transition-all duration-300">
               <div className="block px-4 py-2 hover:bg-gray-700 rounded transition">
-                {user.username || user.email}
+                {user?.username || user?.email}
               </div>
               <button
                 onClick={() => {
